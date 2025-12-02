@@ -43,7 +43,7 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Generate Application Key
-        run: php artisan key:generate
+        run: php artisan key:generate --force
         env:
           APP_ENV: testing
           DB_CONNECTION: pgsql
@@ -101,7 +101,6 @@ jobs:
           DB_USERNAME: laravel
           DB_PASSWORD: laravel
           CACHE_STORE: array
-          APP_KEY: base64:testkey123456789012345678901234567890123456789012345678901234567890=
 
       - name: Generate Swagger Documentation
         run: php artisan l5-swagger:generate
