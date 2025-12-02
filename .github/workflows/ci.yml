@@ -46,38 +46,49 @@ jobs:
         run: php artisan key:generate
         env:
           APP_ENV: testing
-
-      - name: Setup Environment
-        run: |
-          php artisan config:clear
-          php artisan cache:clear
-        env:
           DB_CONNECTION: pgsql
           DB_HOST: localhost
           DB_PORT: 5432
           DB_DATABASE: laravel
           DB_USERNAME: laravel
           DB_PASSWORD: laravel
+          CACHE_STORE: array
 
       - name: Run Migrations
         run: php artisan migrate --force
         env:
+          APP_ENV: testing
           DB_CONNECTION: pgsql
           DB_HOST: localhost
           DB_PORT: 5432
           DB_DATABASE: laravel
           DB_USERNAME: laravel
           DB_PASSWORD: laravel
+          CACHE_STORE: array
 
       - name: Run Seeders
         run: php artisan db:seed --force
         env:
+          APP_ENV: testing
           DB_CONNECTION: pgsql
           DB_HOST: localhost
           DB_PORT: 5432
           DB_DATABASE: laravel
           DB_USERNAME: laravel
           DB_PASSWORD: laravel
+          CACHE_STORE: array
+
+      - name: Clear Configuration Cache
+        run: php artisan config:clear
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: laravel
+          DB_USERNAME: laravel
+          DB_PASSWORD: laravel
+          CACHE_STORE: array
 
       - name: Run Tests
         run: php artisan test
@@ -89,6 +100,7 @@ jobs:
           DB_DATABASE: laravel
           DB_USERNAME: laravel
           DB_PASSWORD: laravel
+          CACHE_STORE: array
           APP_KEY: base64:testkey123456789012345678901234567890123456789012345678901234567890=
 
       - name: Generate Swagger Documentation

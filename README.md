@@ -436,13 +436,3 @@ docker compose exec backend ./vendor/bin/pint
 
 This project is a test assignment and is not licensed for production use.
 
-## 👤 Author
-
-Built as a test assignment for fointerpro (formerly Survey Anyplace).
-
----
-
-**Note:** This application is built according to the requirements specified in the assignment. All optional features have been implemented:
-- API documentation (Swagger) is available at http://localhost/api/documentation
-- GitHub CI pipeline runs tests automatically on push and pull requests
-
