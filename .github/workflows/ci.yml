@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: laravel
+          POSTGRES_USER: laravel
+          POSTGRES_PASSWORD: laravel
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_pgsql, mbstring, xml, ctype, json, fileinfo, gd, zip
+          coverage: none
+
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Generate Application Key
+        run: php artisan key:generate
+        env:
+          APP_ENV: testing
+
+      - name: Setup Environment
+        run: |
+          php artisan config:clear
+          php artisan cache:clear
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: laravel
+          DB_USERNAME: laravel
+          DB_PASSWORD: laravel
+
+      - name: Run Migrations
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: laravel
+          DB_USERNAME: laravel
+          DB_PASSWORD: laravel
+
+      - name: Run Seeders
+        run: php artisan db:seed --force
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: laravel
+          DB_USERNAME: laravel
+          DB_PASSWORD: laravel
+
+      - name: Run Tests
+        run: php artisan test
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: laravel
+          DB_USERNAME: laravel
+          DB_PASSWORD: laravel
+          APP_KEY: base64:testkey123456789012345678901234567890123456789012345678901234567890=
+
+      - name: Generate Swagger Documentation
+        run: php artisan l5-swagger:generate
+        continue-on-error: true
+        env:
+          APP_ENV: testing
+          L5_SWAGGER_CONST_HOST: http://localhost
+
