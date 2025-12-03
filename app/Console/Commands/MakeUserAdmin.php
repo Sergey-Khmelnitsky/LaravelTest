@@ -41,10 +41,20 @@ class MakeUserAdmin extends Command
         $permissions['platform.systems.users'] = true;
         $permissions['platform.systems.roles'] = true;
         
-        $user->permissions = $permissions;
-        $user->save();
+        $user->forceFill(['permissions' => $permissions])->save();
+        
+        // Refresh the user model to ensure permissions are loaded
+        $user->refresh();
+        
+        // Verify that permissions were saved
+        $savedPermissions = $user->permissions;
+        if (empty($savedPermissions) || !isset($savedPermissions['platform.systems'])) {
+            $this->error("Failed to save admin permissions. Please check database connection and user model configuration.");
+            return 1;
+        }
         
         $this->info("User '{$user->name}' ({$email}) has been granted admin permissions.");
+        $this->line("Permissions granted: " . implode(', ', array_keys($savedPermissions)));
         
         return 0;
     }

@@ -74,6 +74,9 @@ APP_KEY=base64:your-generated-key-here
 APP_DEBUG=true
 
 # Database
+DB_CONNECTION=pgsql
+DB_HOST=postgres
+DB_PORT=5432
 DB_DATABASE=laravel
 DB_USERNAME=laravel
 DB_PASSWORD=laravel
@@ -92,16 +95,18 @@ MAIL_FROM_ADDRESS=noreply@localhost
 MAIL_FROM_NAME=Laravel
 ```
 
+
+### 3. Start the Application
+```bash
+docker compose up -d
+```
+
 **Note:** Generate `APP_KEY` using:
 ```bash
 docker compose exec backend php artisan key:generate
 ```
 
-### 3. Start the Application
 
-```bash
-docker compose up -d
-```
 
 This will start:
 - PostgreSQL database (port 5433)

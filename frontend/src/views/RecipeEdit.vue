@@ -246,7 +246,7 @@
                 type="text"
                 v-model="newCuisine.name"
                 required
-                placeholder="e.g., Russian"
+                placeholder="e.g., Canadian"
               />
             </div>
             <div v-if="cuisineError" class="error-message">{{ cuisineError }}</div>
