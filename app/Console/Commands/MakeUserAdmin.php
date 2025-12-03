@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\User;
 use Illuminate\Console\Command;
+use Orchid\Platform\Models\Role;
 
 class MakeUserAdmin extends Command
 {
@@ -19,7 +20,7 @@ class MakeUserAdmin extends Command
      *
      * @var string
      */
-    protected $description = 'Grant admin permissions to a user';
+    protected $description = 'Grant admin permissions to a user by assigning admin role';
 
     /**
      * Execute the console command.
@@ -35,26 +36,45 @@ class MakeUserAdmin extends Command
             return 1;
         }
         
-        $permissions = $user->permissions ?? [];
+        // Create or get admin role with all platform permissions
+        $adminRole = Role::firstOrCreate(
+            ['slug' => 'admin'],
+            [
+                'name' => 'Administrator',
+                'permissions' => [
+                    'platform.index' => true,
+                    'platform.systems' => true,
+                    'platform.systems.index' => true,
+                    'platform.systems.users' => true,
+                    'platform.systems.roles' => true,
+                ],
+            ]
+        );
+        
+        // Ensure platform.index permission is always present in admin role
+        $permissions = $adminRole->permissions ?? [];
+        $permissions['platform.index'] = true;
         $permissions['platform.systems'] = true;
         $permissions['platform.systems.index'] = true;
         $permissions['platform.systems.users'] = true;
         $permissions['platform.systems.roles'] = true;
+        $adminRole->permissions = $permissions;
+        $adminRole->save();
         
-        $user->forceFill(['permissions' => $permissions])->save();
+        // Assign admin role to user (this is the standard Orchid way)
+        $user->replaceRoles([$adminRole->id]);
         
-        // Refresh the user model to ensure permissions are loaded
+        // Refresh the user model to ensure roles are loaded
         $user->refresh();
         
-        // Verify that permissions were saved
-        $savedPermissions = $user->permissions;
-        if (empty($savedPermissions) || !isset($savedPermissions['platform.systems'])) {
-            $this->error("Failed to save admin permissions. Please check database connection and user model configuration.");
+        // Verify that role was assigned and user has access
+        if (!$user->hasAccess('platform.index') || !$user->hasAccess('platform.systems')) {
+            $this->error("Failed to assign admin role. Please check database connection and user model configuration.");
             return 1;
         }
         
         $this->info("User '{$user->name}' ({$email}) has been granted admin permissions.");
-        $this->line("Permissions granted: " . implode(', ', array_keys($savedPermissions)));
+        $this->line("Admin role assigned: {$adminRole->name} ({$adminRole->slug})");
         
         return 0;
     }
